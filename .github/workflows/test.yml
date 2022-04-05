@@ -1,0 +1,172 @@
+---
+name: test
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  # Build and test many combinations on Linux/OS X using Conan
+  test:
+    strategy:
+      matrix:
+        name:
+          [
+            "vcpkg-gcc-head",
+            "conan-gcc-head",
+            "conan-coverage",
+            "conan-clang-tidy",
+            "conan-clang-head-libstdcpp",
+            "conan-clang-head-libcpp",
+            "conan-clang-static-analyzer",
+            "conan-valgrind",
+            "conan-cppcheck",
+            "conan-include-what-you-use",
+            "lint",
+          ]
+        include:
+          - name: vcpkg-gcc-head
+            container: johnmcfarlane/cnl_ci:gcc-head
+            init-script: .github/workflows/vcpkg/init
+            test-script: .github/workflows/vcpkg/test-gcc
+          - name: conan-gcc-head
+            container: johnmcfarlane/cnl_ci:gcc-head
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/test-gcc
+          - name: conan-coverage
+            container: johnmcfarlane/cnl_ci:gcc-head
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/coverage
+          - name: conan-clang-tidy
+            container: johnmcfarlane/cnl_ci:clang-head-libcpp
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/clang-tidy
+          - name: conan-clang-head-libstdcpp
+            container: johnmcfarlane/cnl_ci:clang-head-libstdcpp
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/test-clang
+          - name: conan-clang-head-libcpp
+            container: johnmcfarlane/cnl_ci:clang-head-libcpp
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/test-clang
+          - name: conan-clang-static-analyzer
+            container: johnmcfarlane/cnl_ci:clang-head-libcpp
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/clang-static-analyzer
+          - name: conan-valgrind
+            container: johnmcfarlane/cnl_ci:gcc-head
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/valgrind
+          - name: conan-cppcheck
+            container: johnmcfarlane/cnl_ci:gcc-head
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/cppcheck
+          - name: conan-include-what-you-use
+            container: johnmcfarlane/cnl_ci:clang-11
+            init-script: .github/workflows/conan/init
+            test-script: .github/workflows/conan/iwyu
+          - name: lint
+            container: johnmcfarlane/cnl_ci:clang-head
+            init-script: .github/workflows/pre-commit/init
+            test-script: .github/workflows/pre-commit/lint
+
+    container: ${{matrix.container}}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone WSS
+        uses: actions/checkout@v2
+
+      - name: Load package caches
+        uses: actions/cache@v2
+        env:
+          CACHE_SLUG: ${{ github.job }}-${{ matrix.name }}
+        with:
+          path: |
+            /github/home/.conan/data
+            /github/home/.cache/pre-commit
+          key: ${{ env.CACHE_SLUG }}-${{ github.ref_name }}
+          restore-keys: |
+            ${{ env.CACHE_SLUG }}-main
+            ${{ env.CACHE_SLUG }}-${{ github.ref_name }}
+            ${{ env.CACHE_SLUG }}-
+
+      - name: Load compiler cache
+        uses: hendrikmuhs/ccache-action@v1
+        env:
+          CACHE_SLUG: ${{ github.job }}-${{ matrix.name }}
+        with:
+          key: ${{ env.CACHE_SLUG }}
+
+      - name: Report Caches
+        run: |
+          ccache -s
+
+      - name: Initialise System
+        run: $GITHUB_WORKSPACE/${{ matrix.init-script }}
+
+      - name: Perform Test
+        run: $GITHUB_WORKSPACE/${{ matrix.test-script }}
+
+      - name: Check Working Directory Preservation
+        run: |
+          cd $GITHUB_WORKSPACE
+          git diff --exit-code .
+
+      - name: Upload Clang Static Analyzer report
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.name == 'conan-clang-static-analyzer' && failure() }}
+        with:
+          name: csa-report
+          path: ${{github.workspace}}/scan-build
+          if-no-files-found: error
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.name == 'conan-coverage' && always() }}
+        with:
+          name: coverage-report
+          path: ${{github.workspace}}/coverage-report
+          if-no-files-found: error
+
+      - name: Upload Valgrind report
+        uses: actions/upload-artifact@v2
+        if: ${{ matrix.name == 'conan-valgrind' && failure() }}
+        with:
+          name: valgrind-logs
+          path: ${{github.workspace}}/Testing/Temporary
+          if-no-files-found: error
+
+      - name: Report Caches
+        run: |
+          ccache -s
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - name: Clone WSS
+        uses: actions/checkout@v2
+
+      - name: Load package caches
+        uses: actions/cache@v2
+        env:
+          CACHE_SLUG: ${{ github.job }}-${{ matrix.name }}
+        with:
+          path: |
+            ~\.conan\data
+            ~\AppData\Local\pip\Cache
+          key: ${{ env.CACHE_SLUG }}-${{ github.ref_name }}
+          restore-keys: |
+            ${{ env.CACHE_SLUG }}-main
+            ${{ env.CACHE_SLUG }}-${{ github.ref_name }}
+            ${{ env.CACHE_SLUG }}-
+
+      - name: Initialise System
+        run: .github\\workflows\\conan\\init.ps1
+
+      - name: Perform Test
+        run: .github\\workflows\\conan\\test-msvc.ps1
+
+      - name: Check Working Directory Preservation
+        run: |
+          git diff --exit-code .
