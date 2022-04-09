@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <span>
+#include <string>
 
 namespace acme {
     // everything needed for program to do its thing;
@@ -28,12 +30,12 @@ namespace acme {
 
     // free from error handling
     std::string do_the_thing(sanitized_input in);
-}
+}  // namespace acme
 
 int main(int argc, char const* const* argv)
 {
     // type safety is paramount; variable binding
-    auto const args{std::span{argv, argv+argc}};
+    auto const args{std::span{argv, argv + argc}};
 
     auto const input{acme::digest_input(args)};
     if (!input) {

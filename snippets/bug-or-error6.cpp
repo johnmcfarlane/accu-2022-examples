@@ -17,8 +17,7 @@
 int accumulate_neighborhood(int const* position, int offset_first, int offset_last)
 {
     int r = 0;
-    for (int i = offset_first; i <= offset_last; i ++)
-    {
+    for (int i = offset_first; i <= offset_last; i++) {
         r += position[i];
     }
     return r;

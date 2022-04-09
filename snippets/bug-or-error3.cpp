@@ -18,8 +18,7 @@ int accumulate(int const* numbers, int first, int last)
 {
     assert(first >= 0);
     int r = 0;
-    for (int i = first; i <= last; i ++)
-    {
+    for (int i = first; i <= last; i++) {
         r += numbers[i];
     }
     return r;

@@ -16,8 +16,7 @@ int sample(int const* center, int first, int last)
 {
     // First might be anything.
     int r = 0;
-    for (int i = first; i <= last; i ++)
-    {
+    for (int i = first; i <= last; i++) {
         r += center[i];
     }
     return r;

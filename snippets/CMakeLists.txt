@@ -8,8 +8,7 @@ add_library(bug-or-error5 bug-or-error5.cpp)
 add_library(bug-or-error6 bug-or-error6.cpp)
 
 add_library(if-youre-lucky if-youre-lucky.cpp)
-target_compile_features(if-youre-lucky
-                        PUBLIC cxx_std_20)
+target_compile_features(if-youre-lucky PUBLIC cxx_std_20)
 
 add_executable(vector-overflow vector-overflow.cpp)
 target_compile_features(vector-overflow PUBLIC cxx_std_20)

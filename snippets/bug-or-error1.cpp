@@ -16,8 +16,7 @@ int f(int const* p, int a, int b)
 {
     // Are we good?
     int r = 0;
-    for (int i = a; i <= b; i ++)
-    {
+    for (int i = a; i <= b; i++) {
         r += p[i];
     }
     return r;
