@@ -3,4 +3,5 @@ project(pid)
 
 include(CTest)
 
+add_subdirectory(snippets)
 add_subdirectory(pid)

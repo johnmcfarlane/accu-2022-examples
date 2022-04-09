@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "simulate.h"
-
-#include "pid.h"
-
 #include <csignal>
 #include <cstdlib>
+#include <vector>
+
+#include <fmt/printf.h>
 
 // from https://discourse.cmake.org/t/tests-that-are-meant-to-abort/537/4
 // This is a hack to implement death tests in CTest.
@@ -26,22 +25,13 @@ extern "C" void error_test_handle_abort(int /*unused*/)
     std::exit(EXIT_FAILURE);  // NOLINT(concurrency-mt-unsafe)
 }
 
-auto main() -> int
+int main()
 {
     if (std::signal(SIGABRT, error_test_handle_abort) == SIG_ERR) {
         std::abort();
     }
 
-    constexpr pid::parameters params{
-            .k = {
-                    .proportional = -0.1,
-                    .integral = 0.5,
-                    .derivative = 0.01},
-            .dt = 0.1};
-    constexpr pid::input in{
-            .setpoint = 10.,
-            .process_variable = 30.};
-    constexpr auto max_iterations{100};
-
-    pid::simulate(params, in, max_iterations);
+    auto v{std::vector{0, 1}};
+    v.push_back(2);
+    fmt::print("{}\n", v[3]);
 }

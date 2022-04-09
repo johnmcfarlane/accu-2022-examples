@@ -41,8 +41,7 @@ target_compile_features(simulate_approval_negative_parameter_test
 target_link_libraries(simulate_approval_negative_parameter_test
                       PRIVATE simulate)
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL
-                                             "Test")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Test")
   add_test(simulate_approval_negative_parameter_test
            simulate_approval_negative_parameter_test)
   set_tests_properties(simulate_approval_negative_parameter_test
