@@ -34,7 +34,6 @@
             .derivative = params.k.derivative * derivative};
 
     auto const output{terms.proportional + terms.integral + terms.derivative};
-    PID_ASSERT(output == output);
 
     return result{
             output,
